@@ -1,72 +1,48 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PROGRAM_NAME "myseq"
-#define DEFAULT_STEP 1
+/* code obtained from code review */
+/* link: https://www.tabnews.com.br/JohnVantas/code-review-c-procuro-pessoas-para-fazer-uma-review-de-uma-implementacao-do-utilitario-do-unix-seq */
 
-void print_usage() {
-	fprintf(stderr, "Usage: ./%s:\n", PROGRAM_NAME);
-	fprintf(stderr, "\t-./%s [ENDNUMBER] [STARTNUMBER]\n", PROGRAM_NAME);
-	fprintf(stderr, "\t-./%s [ENDNUMBER]\n", PROGRAM_NAME);
-	fprintf(stderr, "\t-./%s [ENDNUMBER] [STARTNUMBER] [STEP]\n", PROGRAM_NAME);
+void print_usage(const char *pname) {
+	printf("Usage: %s:\n", pname);
+	printf("       %s [ENDNUMBER].\n", pname);
+	printf("       %s [STARTNUMBER] [ENDNUMBER].\n", pname);
+	printf("       %s [STARTNUMBER] [STEP] [ENDNUMBER].\n", pname);
+	exit(1);
 }
 
-void set_step(int* step, int received_step, int start_number, int end_number) {
-	if(received_step == 0) {
-		received_step = DEFAULT_STEP;
-	} else if(start_number > end_number) {
-		/* set the value negative */
-		received_step = received_step * (-1);
-	} else {
-		/* if we can increment normally and we are providing a step */
-		/* then just set it let it be the normal value */
-		received_step = received_step;
+void set_sequence(int argc, char *argv[], int *start_number, int *end_number, int *step) {
+	switch(argc) {
+		case 2:
+			*end_number = atoi(argv[1]);
+		break;
+		case 3:
+			*start_number = atoi(argv[1]);
+			*end_number = atoi(argv[2]);
+		break;
+		case 4:
+			*start_number = atoi(argv[1]);
+			*step = atoi(argv[2]);
+			*end_number = atoi(argv[3]);
+		break;
+		default:
+			print_usage(argv[0]);
+		break;
 	}
-
-	*step = received_step;
-}
-
-void inc_step(int start_number, int end_number, int step) {
-	do {
-		printf("%d ", start_number);
-		start_number = start_number + step;
-	} while(start_number <= end_number);
-}
-
-void dec_step(int start_number, int end_number, int step) {
-	do {
-		printf("%d ", start_number);
-		start_number = start_number + step;
-	} while(end_number <= start_number);
 }
 
 int main(int argc, char *argv[]) {
-	int end_number = 0;
+	int step = 1;
 	int start_number = 1;
-	int step = 0;
+	int end_number = 0;
 
-	/* no arguments were passed: output file is already one arg */
-	if(argc == 1) {
-		print_usage();
-		return 1;
+	set_sequence(argc, argv, &start_number, &end_number, &step);
+
+	while((step > 0 ? start_number <= end_number : start_number >= end_number)) {
+		printf("%d\n", start_number);
+		start_number += step;
 	}
-
-	/**
-	* from this point on, we will have a bunch of strings in argv
-	* so... now we can make scripting...
-	*/
-
-	/* this is pretty much the only thing that we have guaranteed */
-	end_number = atoi(argv[1]);
-
-	if(argv[2] != NULL) start_number = atoi(argv[2]);
-
-	set_step(&step, atoi(argv[3]), start_number, end_number);
-
-	if(start_number < end_number) inc_step(start_number, end_number, step);
-	else dec_step(start_number, end_number, step);
-
-	printf("\n");
 
 	return 0;
 }
